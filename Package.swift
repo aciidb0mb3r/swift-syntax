@@ -1,5 +1,4 @@
-// swift-tools-version:5.1
-
+// swift-tools-version:999.0
 import PackageDescription
 import Foundation
 
@@ -12,12 +11,17 @@ import Darwin.C
 let package = Package(
   name: "SwiftSyntax",
   targets: [
-    .target(name: "_CSwiftSyntax"),
+    .target(name: "_CSwiftSyntax", exclude: ["README.md"]),
     .testTarget(name: "SwiftSyntaxTest", dependencies: ["SwiftSyntax"], exclude: ["Inputs"]),
-    .target(name: "SwiftSyntaxBuilder", dependencies: ["SwiftSyntax"]),
+    .target(
+        name: "SwiftSyntaxBuilder",
+        dependencies: ["SwiftSyntax"],
+        exclude: ["README.md"]
+    ),
     .testTarget(name: "SwiftSyntaxBuilderTest", dependencies: ["SwiftSyntaxBuilder"]),
     .target(name: "lit-test-helper", dependencies: ["SwiftSyntax"]),
-    .testTarget(name: "PerformanceTest", dependencies: ["SwiftSyntax"])
+    .testTarget(name: "PerformanceTest", dependencies: ["SwiftSyntax"]),
+    .binaryTarget(name: "_InternalSwiftSyntaxParser", path: "Sources/_InternalSwiftSyntaxParser/_InternalSwiftSyntaxParser.xcframework"),
     // Also see targets added below
   ]
 )
@@ -42,7 +46,27 @@ if getenv("SWIFT_BUILD_SCRIPT_ENVIRONMENT") != nil {
                               swiftSettings: [.unsafeFlags(swiftSyntaxUnsafeFlags)]
   )
 } else {
-  swiftSyntaxTarget = .target(name: "SwiftSyntax", dependencies: ["_CSwiftSyntax"])
+  swiftSyntaxTarget = .target(
+      name: "SwiftSyntax", 
+      dependencies: ["_CSwiftSyntax", "_InternalSwiftSyntaxParser"],
+      exclude: [
+          "SyntaxNodes.swift.gyb.template",
+          "SyntaxFactory.swift.gyb",
+          "SyntaxEnum.swift.gyb",
+          "Trivia.swift.gyb",
+          "SyntaxBuilders.swift.gyb",
+          "SyntaxCollections.swift.gyb",
+          "SyntaxClassification.swift.gyb",
+          "SyntaxBaseNodes.swift.gyb",
+          "SyntaxTraits.swift.gyb",
+          "SyntaxVisitor.swift.gyb",
+          "SyntaxRewriter.swift.gyb",
+          "SyntaxKind.swift.gyb",
+          "TokenKind.swift.gyb",
+          "SyntaxAnyVisitor.swift.gyb",
+          "Misc.swift.gyb",
+      ]
+  )
 }
 
 package.targets.append(swiftSyntaxTarget)
